@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import yaml
+from aiohttp import web
 
 from hermes_trading.adapters.price import PriceAdapter
 from hermes_trading.adapters.onchain import OnchainAdapter
@@ -103,7 +104,7 @@ class TradingLoop:
             "macro": CircuitBreaker(),
         }
 
-        self.position: Optional[Trade] = None
+        self.position = None
         self.closed_trades_count = 0
         self.last_reflection_count = 0
 
@@ -294,10 +295,69 @@ class TradingLoop:
         )
         self._load_state()
         self.last_reflection_count = self.closed_trades_count
-        print(f"[{datetime.utcnow().isoformat()}] Reflection complete. Strategy v{self.strategy.version}")
+
+    def create_admin_app(self) -> web.Application:
+        """Create aiohttp admin application with state endpoints."""
+        app = web.Application()
+
+        async def health(request):
+            return web.json_response({"status": "ok", "asset": self.asset, "version": self.strategy.version})
+
+        async def get_trades(request):
+            if self.trades_file.exists():
+                with open(self.trades_file, "r") as f:
+                    content = f.read()
+                return web.Response(text=content, content_type="application/jsonl")
+            return web.Response(text="", content_type="application/jsonl")
+
+        async def get_strategy(request):
+            if self.strategy_file.exists():
+                with open(self.strategy_file, "r") as f:
+                    content = f.read()
+                return web.Response(text=content, content_type="application/yaml")
+            return web.Response(text="", content_type="application/yaml")
+
+        async def get_goal(request):
+            if self.goal_path.exists():
+                with open(self.goal_path, "r") as f:
+                    content = f.read()
+                return web.Response(text=content, content_type="application/yaml")
+            return web.Response(text="", content_type="application/yaml")
+
+        async def get_hypotheses(request):
+            if self.hypotheses_file.exists():
+                with open(self.hypotheses_file, "r") as f:
+                    content = f.read()
+                return web.Response(text=content, content_type="application/jsonl")
+            return web.Response(text="", content_type="application/jsonl")
+
+        async def trigger_reflection(request):
+            try:
+                await self._run_reflection()
+                return web.json_response({"status": "ok", "message": "Reflection triggered", "version": self.strategy.version})
+            except Exception as e:
+                return web.json_response({"status": "error", "message": str(e)}, status=500)
+
+        app.router.add_get("/health", health)
+        app.router.add_get("/trades", get_trades)
+        app.router.add_get("/strategy", get_strategy)
+        app.router.add_get("/goal", get_goal)
+        app.router.add_get("/hypotheses", get_hypotheses)
+        app.router.add_post("/reflect", trigger_reflection)
+
+        return app
 
     async def run(self):
         print(f"[{datetime.utcnow().isoformat()}] Booting hermes-trading worker")
+        
+        # Start admin HTTP server
+        app = self.create_admin_app()
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "0.0.0.0", 8080)
+        await site.start()
+        print(f"[{datetime.utcnow().isoformat()}] Admin server started on port 8080")
+
         iteration = 0
 
         while True:
