@@ -1,0 +1,16 @@
+pyproject.toml
+hermes_trading/__init__.py
+hermes_trading/loop.py
+hermes_trading/reflect.py
+hermes_trading/run.py
+hermes_trading/score.py
+hermes_trading.egg-info/PKG-INFO
+hermes_trading.egg-info/SOURCES.txt
+hermes_trading.egg-info/dependency_links.txt
+hermes_trading.egg-info/requires.txt
+hermes_trading.egg-info/top_level.txt
+hermes_trading/adapters/__init__.py
+hermes_trading/adapters/macro.py
+hermes_trading/adapters/news.py
+hermes_trading/adapters/onchain.py
+hermes_trading/adapters/price.py

@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-15T04:16:30.251693Z", "type": "fallback", "variable_changed": "entry.threshold", "old_value": 30, "new_value": 28, "reasoning": "Total return 0.00% below target 5.00%. Loosening entry threshold from 30 to 28 to capture more trades.", "metrics": {"total_return": 0, "max_drawdown": 0, "sharpe": 0, "trade_count": 0}, "strategy_version": "02"}
