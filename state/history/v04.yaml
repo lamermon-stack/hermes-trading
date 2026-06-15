@@ -1,7 +1,7 @@
 entry:
   direction: long
   indicator: rsi
-  threshold: 22
+  threshold: 24
 position_size_r: 0.5
 stop_loss_pct: 2.0
-version: '05'
+version: '04'
