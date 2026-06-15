@@ -27,10 +27,10 @@ position_size_r: 0.5
     "strategy.yaml": """entry:
   direction: long
   indicator: rsi
-  threshold: 28
+  threshold: 80
 position_size_r: 0.5
 stop_loss_pct: 2.0
-version: '02'
+version: '03'
 """,
     "hypotheses.jsonl": "",
     "trades.jsonl": "",
@@ -43,7 +43,8 @@ def seed_state_dir(state_dir: Path):
     state_dir.mkdir(parents=True, exist_ok=True)
     for filename, content in DEFAULT_STATE_FILES.items():
         filepath = state_dir / filename
-        if not filepath.exists():
+        # Always overwrite strategy.yaml so version changes take effect
+        if filename == "strategy.yaml" or not filepath.exists():
             filepath.write_text(content)
             print(f"[hermes-trading] Seeded {filename}")
 
