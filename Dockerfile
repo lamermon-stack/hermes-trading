@@ -6,7 +6,6 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV PYTHONUNBUFFERED=1
 COPY pyproject.toml ./
 COPY hermes_trading ./hermes_trading
-COPY state ./state
 RUN uv sync
 ENV HERMES_TRADING_MODE=paper
 EXPOSE 8080
